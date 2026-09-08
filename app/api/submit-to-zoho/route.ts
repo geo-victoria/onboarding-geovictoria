@@ -612,6 +612,22 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // SOLO EXCEL (Vicky Onboarding, 08-sep): el chat pide las planillas para
+    // dejarlas en la Implementación SIN cerrar el onboarding ni disparar el
+    // Zoho Flow (el cliente dio la nómina pero no confirmó la configuración).
+    if ((incomingPayload as { soloExcel?: boolean }).soloExcel === true) {
+      console.log("[v0] /api/submit-to-zoho: soloExcel — planillas generadas, sin Zoho Flow")
+      return NextResponse.json(
+        {
+          success: Boolean(payload.excelUrlUsuarios),
+          soloExcel: true,
+          excelUrls: payload.excelUrls || null,
+          error: payload.excelUrlUsuarios ? undefined : "no se generaron las planillas (falta razón social o falló la subida)",
+        },
+        { status: 200 },
+      )
+    }
+
     console.log("[v0] /api/submit-to-zoho: Llamando a sendToZohoFlow()...")
     const result = await sendToZohoFlow(payload)
     console.log("[v0] /api/submit-to-zoho: Respuesta de sendToZohoFlow():", result)
